@@ -6,12 +6,8 @@ export interface EventEmitterInstanceSpec {
 }
 
 export interface EventEmitterSpec extends EventEmitterInstanceSpec {
-  // readonly isOnce: boolean
-  // readonly isPassive: boolean
-  // readonly isDefault: boolean
   readonly type: string
-  // readonly timeCreate: number
-  // readonly stackCall: any
+  readonly timeCreate: number
   prevent: boolean
   cancelAble: boolean
 
@@ -32,10 +28,10 @@ export class EventEmitter implements EventEmitterSpec {
 
   constructor(type: string, options?: EventEmitterInstanceSpec) {
     this.type = type;
+    this.timeCreate = new Date().getTime();
     this.receiver = options?.receiver || {};
     this.sender = options?.sender || {};
     this.data = options?.data || {};
-    this.timeCreate = new Date().getTime();
   }
 
   public stopPropagation() {
@@ -84,16 +80,10 @@ export class Emitter implements EmitterSpec {
   })();
 
   private listenerRegister(type: string, handler: ListenerHandler, options: ListenerOptions): ListenerId {
-    const DEFAULT_OPTIONS: ListenerOptions = {
-      default: options?.default || false,
-      once: options?.once || false,
-      passive: options?.passive || false,
-    };
-
     const ID: ListenerId = this.listenerIdGen.next().value as ListenerId;
 
     if (this.listenerList.hasOwnProperty(type)) {
-      this.listenerList[type].push({id: ID, handler: handler, options: DEFAULT_OPTIONS} as ListenerQueue);
+      this.listenerList[type].push({id: ID, handler: handler, options: options} as ListenerQueue);
       this.listenerList[type].sort((a, b) => {
         if (a.options.default && !b.options.default) {
           return 0;
@@ -110,7 +100,7 @@ export class Emitter implements EmitterSpec {
         writable: true,
         value: [],
       });
-      this.listenerList[type].push({id: ID, handler: handler, options: DEFAULT_OPTIONS} as ListenerQueue);
+      this.listenerList[type].push({id: ID, handler: handler, options: options} as ListenerQueue);
       this.listenerList[type].sort((a, b) => {
         if (a.options.default) {
           return 0;
@@ -122,8 +112,14 @@ export class Emitter implements EmitterSpec {
     return ID;
   }
 
-  on(type: string, handler: ListenerHandler, options: ListenerOptions): ListenerId {
-    return this.listenerRegister(type, handler, options);
+  on(type: string, handler: ListenerHandler, options?: ListenerOptions): ListenerId {
+    const DEFAULT_OPTIONS: ListenerOptions = {
+      default: options?.default || false,
+      once: options?.once || false,
+      passive: options?.passive || false,
+    };
+
+    return this.listenerRegister(type, handler, DEFAULT_OPTIONS);
   }
   emit(eventEmitter: EventEmitter, ...args: any): void {
     const TYPE = eventEmitter.type;
