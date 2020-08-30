@@ -5,6 +5,7 @@ export interface EventEmitterInstanceSpec {
 }
 export interface EventEmitterSpec extends EventEmitterInstanceSpec {
     readonly type: string;
+    readonly timeCreate: number;
     prevent: boolean;
     cancelAble: boolean;
     stopDefaultEvent(): void;
@@ -48,7 +49,7 @@ export declare class Emitter implements EmitterSpec {
     private listenerList;
     private listenerIdGen;
     private listenerRegister;
-    on(type: string, handler: ListenerHandler, options: ListenerOptions): ListenerId;
+    on(type: string, handler: ListenerHandler, options?: ListenerOptions): ListenerId;
     emit(eventEmitter: EventEmitter, ...args: any): void;
     remove(id: ListenerId): boolean;
 }
