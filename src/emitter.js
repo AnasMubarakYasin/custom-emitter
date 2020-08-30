@@ -3,10 +3,10 @@ export class EventEmitter {
         this.cancelAble = false;
         this.prevent = false;
         this.type = type;
+        this.timeCreate = new Date().getTime();
         this.receiver = options?.receiver || {};
         this.sender = options?.sender || {};
         this.data = options?.data || {};
-        this.timeCreate = new Date().getTime();
     }
     stopPropagation() {
         this.cancelAble = true;
@@ -25,14 +25,9 @@ export class Emitter {
         })();
     }
     listenerRegister(type, handler, options) {
-        const DEFAULT_OPTIONS = {
-            default: options?.default || false,
-            once: options?.once || false,
-            passive: options?.passive || false,
-        };
         const ID = this.listenerIdGen.next().value;
         if (this.listenerList.hasOwnProperty(type)) {
-            this.listenerList[type].push({ id: ID, handler: handler, options: DEFAULT_OPTIONS });
+            this.listenerList[type].push({ id: ID, handler: handler, options: options });
             this.listenerList[type].sort((a, b) => {
                 if (a.options.default && !b.options.default) {
                     return 0;
@@ -52,7 +47,7 @@ export class Emitter {
                 writable: true,
                 value: [],
             });
-            this.listenerList[type].push({ id: ID, handler: handler, options: DEFAULT_OPTIONS });
+            this.listenerList[type].push({ id: ID, handler: handler, options: options });
             this.listenerList[type].sort((a, b) => {
                 if (a.options.default) {
                     return 0;
@@ -65,7 +60,12 @@ export class Emitter {
         return ID;
     }
     on(type, handler, options) {
-        return this.listenerRegister(type, handler, options);
+        const DEFAULT_OPTIONS = {
+            default: options?.default || false,
+            once: options?.once || false,
+            passive: options?.passive || false,
+        };
+        return this.listenerRegister(type, handler, DEFAULT_OPTIONS);
     }
     emit(eventEmitter, ...args) {
         const TYPE = eventEmitter.type;
