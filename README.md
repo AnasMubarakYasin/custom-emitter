@@ -1,2 +1,2 @@
 # custom-emitter
-a module helper
+event emitter module
